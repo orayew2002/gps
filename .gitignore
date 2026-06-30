@@ -1,0 +1,6 @@
+# Compiled binary
+/gps
+.claude
+# Go build/test artifacts
+*.test
+*.out
