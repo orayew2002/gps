@@ -1,5 +1,5 @@
 # Compiled binary
-/gps
+gps
 .claude
 # Go build/test artifacts
 *.test

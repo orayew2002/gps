@@ -16,10 +16,12 @@ import (
 type Fix struct {
 	Time     time.Time // UTC time of fix
 	Lat, Lon float64   // decimal degrees, signed (N/E positive)
+	Altitude float64   // meters above mean sea level (GGA)
+	HDOP     float64   // horizontal dilution of precision (GGA); lower is better
 	Valid    bool      // RMC status A=valid
-	Sats     int       // satellites used in solution (GGA)
+	Sats     int       // satellites used in the solution (GGA)
 	Quality  int       // GGA fix quality (0=no fix)
-	InView   int       // satellites in view (GSV)
+	InView   int       // total satellites in view across all constellations (GSV)
 
 	haveTime  bool
 	haveCoord bool
@@ -58,6 +60,10 @@ const (
 // Parser accumulates state across sentences into a single Fix.
 type Parser struct {
 	fix Fix
+	// inView holds the latest "satellites in view" reported per GNSS talker
+	// (GP=GPS, GL=GLONASS, GA=Galileo, GB/BD=BeiDou, GQ=QZSS). Each constellation
+	// reports independently, so the running total is their sum — not the last one.
+	inView map[string]int
 }
 
 // Fix returns the current accumulated fix.
@@ -83,7 +89,7 @@ func (p *Parser) Feed(line string) (SentenceKind, bool) {
 		parseGGA(fields, &p.fix)
 		return KindGGA, true
 	case strings.HasSuffix(typ, "GSV"):
-		parseGSV(fields, &p.fix)
+		p.parseGSV(typ, fields)
 		return KindGSV, true
 	default:
 		return KindOther, true
@@ -108,23 +114,47 @@ func parseRMC(f []string, fx *Fix) {
 	}
 }
 
-// parseGGA: $xxGGA,hhmmss.ss,lat,N,lon,E,quality,sats,...
+// parseGGA: $xxGGA,hhmmss.ss,lat,N,lon,E,quality,sats,hdop,alt,M,...
 func parseGGA(f []string, fx *Fix) {
 	if len(f) < 8 {
 		return
 	}
 	fx.Quality, _ = strconv.Atoi(f[6])
 	fx.Sats, _ = strconv.Atoi(f[7])
+	if len(f) > 8 {
+		fx.HDOP, _ = strconv.ParseFloat(f[8], 64)
+	}
+	if len(f) > 9 {
+		fx.Altitude, _ = strconv.ParseFloat(f[9], 64)
+	}
 }
 
-// parseGSV: $xxGSV,totalMsgs,msgNum,satsInView,...  (field 3 = sats in view)
-func parseGSV(f []string, fx *Fix) {
+// parseGSV: $xxGSV,totalMsgs,msgNum,satsInView,...  (field 3 = sats in view for
+// THIS constellation). A multi-GNSS receiver emits one GSV group per talker
+// (GPGSV, GLGSV, GAGSV, ...), each repeating its own total. We key the latest
+// total by talker (first two letters of the type) and expose their sum, so GPS +
+// GLONASS + Galileo are all counted instead of overwriting one another.
+func (p *Parser) parseGSV(typ string, f []string) {
 	if len(f) < 4 {
 		return
 	}
-	if n, err := strconv.Atoi(f[3]); err == nil {
-		fx.InView = n
+	n, err := strconv.Atoi(f[3])
+	if err != nil {
+		return
 	}
+	talker := typ
+	if len(typ) >= 2 {
+		talker = typ[:2]
+	}
+	if p.inView == nil {
+		p.inView = make(map[string]int)
+	}
+	p.inView[talker] = n
+	total := 0
+	for _, c := range p.inView {
+		total += c
+	}
+	p.fix.InView = total
 }
 
 // parseTimeDate combines NMEA time (hhmmss.ss) + date (ddmmyy) into UTC.

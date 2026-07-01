@@ -10,17 +10,35 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"time"
 
 	"gps-service/internal/nmea"
 )
 
-// candidateGlobs are the device-node patterns scanned during discovery, in
-// priority order (CDC-ACM is tried before generic USB-serial).
-var candidateGlobs = []string{
-	"/dev/ttyACM*",
-	"/dev/ttyUSB*",
+// candidateGlobs returns the device-node patterns scanned during discovery, in
+// priority order, for the OS the binary is running on. USB GPS units enumerate
+// under different names per platform:
+//
+//   - Linux:  /dev/ttyACM* (CDC-ACM, e.g. u-blox) then /dev/ttyUSB* (USB-serial)
+//   - macOS:  /dev/cu.usbmodem* (CDC-ACM) then /dev/cu.usbserial* (USB-serial);
+//     the cu.* call-out nodes are used (not tty.*) so opening does not block on
+//     carrier detect. Bluetooth cu.* devices are intentionally excluded.
+//
+// On any other OS we try the union so the service degrades gracefully.
+func candidateGlobs() []string {
+	switch runtime.GOOS {
+	case "linux":
+		return []string{"/dev/ttyACM*", "/dev/ttyUSB*"}
+	case "darwin":
+		return []string{"/dev/cu.usbmodem*", "/dev/cu.usbserial*"}
+	default:
+		return []string{
+			"/dev/ttyACM*", "/dev/ttyUSB*",
+			"/dev/cu.usbmodem*", "/dev/cu.usbserial*",
+		}
+	}
 }
 
 // Port is an opened serial connection to a GPS receiver.
@@ -42,7 +60,7 @@ func Open(path string) (*Port, error) {
 // Candidates returns the sorted set of device nodes that could be a GPS.
 func Candidates() []string {
 	var out []string
-	for _, g := range candidateGlobs {
+	for _, g := range candidateGlobs() {
 		matches, _ := filepath.Glob(g)
 		out = append(out, matches...)
 	}
