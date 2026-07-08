@@ -17,10 +17,10 @@ import (
 	"syscall"
 	"time"
 
-	"gps-service/internal/live"
-	"gps-service/internal/nmea"
-	"gps-service/internal/server"
-	"gps-service/internal/service"
+	"github.com/orayew2002/gps/internal/live"
+	"github.com/orayew2002/gps/internal/nmea"
+	"github.com/orayew2002/gps/internal/server"
+	"github.com/orayew2002/gps/internal/service"
 )
 
 // version is overridden at build time via -ldflags "-X main.version=...".
