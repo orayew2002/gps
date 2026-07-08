@@ -10,8 +10,8 @@ import (
 	"errors"
 	"time"
 
-	"gps-service/internal/nmea"
-	"gps-service/internal/serial"
+	"gps/internal/nmea"
+	"gps/internal/serial"
 )
 
 // Handler receives lifecycle and data events from the running service.

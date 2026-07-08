@@ -10,16 +10,16 @@ import (
 	"context"
 	"sync/atomic"
 
-	"gps-service/gpsproto"
-	"gps-service/internal/nmea"
-	"gps-service/internal/service"
+	"gps/gpsproto"
+	"gps/internal/nmea"
+	"gps/internal/service"
 )
 
 // Tracker owns the running GPS service and the most recent Sample.
 type Tracker struct {
 	svc    *service.Service
 	latest atomic.Pointer[gpsproto.Sample] // newest published sample (nil until first)
-	avg    nmea.Averager                    // noise-averaging accumulator (read loop only)
+	avg    nmea.Averager                   // noise-averaging accumulator (read loop only)
 }
 
 // New builds a Tracker over the given service config. Pass service.DefaultConfig()

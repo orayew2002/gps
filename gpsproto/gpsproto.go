@@ -25,15 +25,15 @@ const DefaultAddr = ":9000"
 // accumulates for a stationary receiver, so a client can choose whichever it
 // needs without recomputing anything.
 type Sample struct {
-	Time     time.Time `json:"time"`     // UTC time of the fix
-	Lat      float64   `json:"lat"`      // instantaneous latitude, decimal degrees
-	Lon      float64   `json:"lon"`      // instantaneous longitude, decimal degrees
-	Altitude float64   `json:"alt_m"`    // meters above mean sea level
-	HDOP     float64   `json:"hdop"`     // horizontal dilution of precision
-	Sats     int       `json:"sats"`     // satellites used in the solution
-	InView   int       `json:"in_view"`  // satellites in view across constellations
-	Quality  int       `json:"quality"`  // GGA fix quality (0 = no fix)
-	Lock     bool      `json:"lock"`     // true when the fix is complete and valid
+	Time     time.Time `json:"time"`    // UTC time of the fix
+	Lat      float64   `json:"lat"`     // instantaneous latitude, decimal degrees
+	Lon      float64   `json:"lon"`     // instantaneous longitude, decimal degrees
+	Altitude float64   `json:"alt_m"`   // meters above mean sea level
+	HDOP     float64   `json:"hdop"`    // horizontal dilution of precision
+	Sats     int       `json:"sats"`    // satellites used in the solution
+	InView   int       `json:"in_view"` // satellites in view across constellations
+	Quality  int       `json:"quality"` // GGA fix quality (0 = no fix)
+	Lock     bool      `json:"lock"`    // true when the fix is complete and valid
 
 	// Averaged best estimate over all locked samples so far (stationary use).
 	AvgLat  float64 `json:"avg_lat"`

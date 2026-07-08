@@ -14,7 +14,7 @@ import (
 	"sort"
 	"time"
 
-	"gps-service/internal/nmea"
+	"gps/internal/nmea"
 )
 
 // candidateGlobs returns the device-node patterns scanned during discovery, in

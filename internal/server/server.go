@@ -10,8 +10,8 @@ import (
 	"net"
 	"time"
 
-	"gps-service/gpsproto"
-	"gps-service/internal/live"
+	"gps/gpsproto"
+	"gps/internal/live"
 )
 
 // Server streams a Tracker's latest sample to every TCP client.
