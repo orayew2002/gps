@@ -10,9 +10,9 @@ import (
 	"context"
 	"sync/atomic"
 
-	"gps/gpsproto"
-	"gps/internal/nmea"
-	"gps/internal/service"
+	"github.com/orayew2002/gps/gpsproto"
+	"github.com/orayew2002/gps/internal/nmea"
+	"github.com/orayew2002/gps/internal/service"
 )
 
 // Tracker owns the running GPS service and the most recent Sample.

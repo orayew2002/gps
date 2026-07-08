@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gps/gpsproto"
+	"github.com/orayew2002/gps/gpsproto"
 )
 
 // Client holds the latest coordinates received from a GPS stream server.

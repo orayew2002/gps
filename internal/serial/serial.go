@@ -14,7 +14,7 @@ import (
 	"sort"
 	"time"
 
-	"gps/internal/nmea"
+	"github.com/orayew2002/gps/internal/nmea"
 )
 
 // candidateGlobs returns the device-node patterns scanned during discovery, in

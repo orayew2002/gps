@@ -10,8 +10,8 @@ import (
 	"net"
 	"time"
 
-	"gps/gpsproto"
-	"gps/internal/live"
+	"github.com/orayew2002/gps/gpsproto"
+	"github.com/orayew2002/gps/internal/live"
 )
 
 // Server streams a Tracker's latest sample to every TCP client.

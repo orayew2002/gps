@@ -4,3 +4,4 @@ gps
 # Go build/test artifacts
 *.test
 *.out
+dist

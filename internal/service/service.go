@@ -10,8 +10,8 @@ import (
 	"errors"
 	"time"
 
-	"gps/internal/nmea"
-	"gps/internal/serial"
+	"github.com/orayew2002/gps/internal/nmea"
+	"github.com/orayew2002/gps/internal/serial"
 )
 
 // Handler receives lifecycle and data events from the running service.
