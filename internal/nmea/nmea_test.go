@@ -60,6 +60,9 @@ func TestParseRMC_FullLock(t *testing.T) {
 	if !approx(fix.Lon, 11+31.000/60) {
 		t.Errorf("lon = %f", fix.Lon)
 	}
+	if !approx(fix.SpeedKmh, 22.4*1.852) {
+		t.Errorf("speed = %f, want %f", fix.SpeedKmh, 22.4*1.852)
+	}
 }
 
 func TestParseCoord_Hemispheres(t *testing.T) {
