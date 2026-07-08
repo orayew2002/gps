@@ -20,13 +20,35 @@ type Tracker struct {
 	svc    *service.Service
 	latest atomic.Pointer[gpsproto.Sample] // newest published sample (nil until first)
 	avg    nmea.Averager                   // noise-averaging accumulator (read loop only)
+
+	// OnSample, if set before Run, is called with every published sample on
+	// the read goroutine. Keep it cheap.
+	OnSample func(gpsproto.Sample)
 }
 
 // New builds a Tracker over the given service config. Pass service.DefaultConfig()
 // for auto-detection, optionally setting Port to pin a device.
 func New(cfg service.Config) *Tracker {
+	return NewWithHandler(cfg, service.Handler{})
+}
+
+// NewWithHandler builds a Tracker that also forwards lifecycle events
+// (OnConnect/OnDisconnect/OnWaiting, and OnSentence after the sample is
+// published) to h, so an embedding program can observe device state while the
+// tracker keeps maintaining Latest.
+func NewWithHandler(cfg service.Config, h service.Handler) *Tracker {
 	t := &Tracker{}
-	t.svc = service.New(cfg, service.Handler{OnSentence: t.onSentence})
+	t.svc = service.New(cfg, service.Handler{
+		OnConnect:    h.OnConnect,
+		OnDisconnect: h.OnDisconnect,
+		OnWaiting:    h.OnWaiting,
+		OnSentence: func(fix nmea.Fix, kind nmea.SentenceKind) {
+			t.onSentence(fix, kind)
+			if h.OnSentence != nil {
+				h.OnSentence(fix, kind)
+			}
+		},
+	})
 	return t
 }
 
@@ -73,4 +95,7 @@ func (t *Tracker) onSentence(fix nmea.Fix, _ nmea.SentenceKind) {
 		Samples:  t.avg.Count(),
 	}
 	t.latest.Store(&s)
+	if t.OnSample != nil {
+		t.OnSample(s)
+	}
 }
