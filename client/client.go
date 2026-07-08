@@ -20,6 +20,12 @@ type Client struct {
 	// OnSample, if set, is called for every received sample in addition to
 	// updating Latest. It runs on the read goroutine, so keep it cheap.
 	OnSample func(gpsproto.Sample)
+	// OnConnect, if set, is called each time a connection to the server is
+	// established (including reconnects). Runs on the read goroutine.
+	OnConnect func(addr string)
+	// OnDisconnect, if set, is called each time an established connection is
+	// lost or a dial attempt fails. Runs on the read goroutine.
+	OnDisconnect func(addr string, err error)
 }
 
 // New returns an empty Client. Set OnSample before calling Stream if you want a
@@ -71,9 +77,16 @@ func (c *Client) readOnce(ctx context.Context, addr string) error {
 	var d net.Dialer
 	conn, err := d.DialContext(ctx, "tcp", addr)
 	if err != nil {
+		if c.OnDisconnect != nil {
+			c.OnDisconnect(addr, err)
+		}
 		return err
 	}
 	defer conn.Close()
+
+	if c.OnConnect != nil {
+		c.OnConnect(addr)
+	}
 
 	// Closing the connection on cancellation unblocks a stuck Decode.
 	go func() {
@@ -85,6 +98,9 @@ func (c *Client) readOnce(ctx context.Context, addr string) error {
 	for {
 		s, err := dec.Decode()
 		if err != nil {
+			if c.OnDisconnect != nil {
+				c.OnDisconnect(addr, err)
+			}
 			return err
 		}
 		c.latest.Store(&s)

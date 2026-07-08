@@ -22,6 +22,7 @@ type Fix struct {
 	Sats     int       // satellites used in the solution (GGA)
 	Quality  int       // GGA fix quality (0=no fix)
 	InView   int       // total satellites in view across all constellations (GSV)
+	SpeedKmh float64   // speed over ground in km/h (RMC)
 
 	haveTime  bool
 	haveCoord bool
@@ -111,6 +112,9 @@ func parseRMC(f []string, fx *Fix) {
 			fx.Lat, fx.Lon = lat, lon
 			fx.haveCoord = true
 		}
+	}
+	if knots, err := strconv.ParseFloat(f[7], 64); err == nil {
+		fx.SpeedKmh = knots * 1.852
 	}
 }
 

@@ -25,21 +25,39 @@ const DefaultAddr = ":9000"
 // accumulates for a stationary receiver, so a client can choose whichever it
 // needs without recomputing anything.
 type Sample struct {
-	Time     time.Time `json:"time"`    // UTC time of the fix
-	Lat      float64   `json:"lat"`     // instantaneous latitude, decimal degrees
-	Lon      float64   `json:"lon"`     // instantaneous longitude, decimal degrees
-	Altitude float64   `json:"alt_m"`   // meters above mean sea level
-	HDOP     float64   `json:"hdop"`    // horizontal dilution of precision
-	Sats     int       `json:"sats"`    // satellites used in the solution
-	InView   int       `json:"in_view"` // satellites in view across constellations
-	Quality  int       `json:"quality"` // GGA fix quality (0 = no fix)
-	Lock     bool      `json:"lock"`    // true when the fix is complete and valid
+	Time     time.Time `json:"time"`      // UTC time of the fix
+	Lat      float64   `json:"lat"`       // instantaneous latitude, decimal degrees
+	Lon      float64   `json:"lon"`       // instantaneous longitude, decimal degrees
+	Altitude float64   `json:"alt_m"`     // meters above mean sea level
+	HDOP     float64   `json:"hdop"`      // horizontal dilution of precision
+	Sats     int       `json:"sats"`      // satellites used in the solution
+	InView   int       `json:"in_view"`   // satellites in view across constellations
+	Quality  int       `json:"quality"`   // GGA fix quality (0 = no fix)
+	Lock     bool      `json:"lock"`      // true when the fix is complete and valid
+	SpeedKmh float64   `json:"speed_kmh"` // speed over ground, km/h (RMC)
 
 	// Averaged best estimate over all locked samples so far (stationary use).
 	AvgLat  float64 `json:"avg_lat"`
 	AvgLon  float64 `json:"avg_lon"`
 	SpreadM float64 `json:"spread_m"` // 1σ scatter of the averaged position, meters
 	Samples int     `json:"samples"`  // number of locked fixes folded into the average
+}
+
+// QualityName maps the Sample's GGA quality code to a human-readable label,
+// so consumers can log or display it without knowing the NMEA code table.
+func (s Sample) QualityName() string {
+	switch s.Quality {
+	case 1:
+		return "GPS"
+	case 2:
+		return "DGPS"
+	case 4:
+		return "RTK"
+	case 5:
+		return "RTK-float"
+	default:
+		return "no fix"
+	}
 }
 
 // Encoder writes newline-delimited Samples to a stream (the server side).

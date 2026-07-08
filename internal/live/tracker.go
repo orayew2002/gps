@@ -66,6 +66,7 @@ func (t *Tracker) onSentence(fix nmea.Fix, _ nmea.SentenceKind) {
 		InView:   fix.InView,
 		Quality:  fix.Quality,
 		Lock:     fix.HasLock(),
+		SpeedKmh: fix.SpeedKmh,
 		AvgLat:   aLat,
 		AvgLon:   aLon,
 		SpreadM:  t.avg.SpreadMeters(),
